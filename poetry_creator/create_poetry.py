@@ -1,18 +1,20 @@
 import os
+import argparse
+from pathlib import Path
 import subprocess
 
-def create_project():
-    # Get the project name from the user
-    project_name = input("Enter the project name: ")
-
+def create_project(project_name):
     # Create a new directory with the provided project name
-    os.mkdir(project_name)
+    project_dir = Path(project_name)
+    if project_dir.exists():
+        raise FileExistsError(f"Directory '{project_name}' already exists.")
 
-    # Navigate into the project directory
-    os.chdir(project_name)
+    # Create project directory
+    project_dir.mkdir(parents=True)
 
     # Initialize a new Poetry project in the directory
-    subprocess.run(["poetry", "init", "--no-interaction"], check=True)
+    subprocess.run(["poetry", "init", "--no-interaction"], check=True, cwd=project_dir)
+
 
     # Create a `pyproject.toml` file with the required dependencies
     pyproject_content = """
@@ -62,17 +64,27 @@ def read_root():
 
     return project_name  # return the project name for running uvicorn
 
-def install_dependencies():
-    subprocess.run(["poetry", "install"], check=True)
+def install_dependencies(project_name):
+    project_dir = Path(project_name)
+    subprocess.run(["poetry", "install"], check=True, cwd=project_dir)
 
+def run_uvicorn(project_name):
+    project_dir = Path(project_name)
+    os.system(f"cd {project_dir} && poetry run uvicorn main:app --reload")
 
-def run_uvicorn():
-    # Run the FastAPI project with uvicorn with reloading
-    # Here we use `os.system` to keep the process in the foreground
-    os.system(f"poetry run uvicorn main:app --reload")
+def main():
+    parser = argparse.ArgumentParser(description='Create a new Python project with Poetry.')
+    parser.add_argument('project_name', type=str, help='The name of the project.')
 
+    args = parser.parse_args()
+
+    try:
+        create_project(args.project_name)
+        install_dependencies(args.project_name)
+        run_uvicorn(args.project_name)
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
 
 if __name__ == "__main__":
-    project_name = create_project()
-    install_dependencies()
-    run_uvicorn()
+    main()
