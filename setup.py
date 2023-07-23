@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="poetry-creator",
-    version="0.1.0",
+    version="0.1.1",
     description="The quickest way to get up and running with Python",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
