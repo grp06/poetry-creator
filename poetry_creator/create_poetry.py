@@ -72,6 +72,13 @@ def run_uvicorn(project_name):
     project_dir = Path(project_name)
     os.system(f"cd {project_dir} && poetry run uvicorn main:app --reload")
 
+def check_poetry_installed():
+    try:
+        subprocess.run(["poetry", "--version"], check=True)
+    except subprocess.CalledProcessError:
+        print("Poetry is not installed, installing it now...")
+        subprocess.run(["pip", "install", "poetry"], check=True)
+
 def main():
     parser = argparse.ArgumentParser(description='Create a new Python project with Poetry.')
     parser.add_argument('project_name', type=str, help='The name of the project.')
@@ -79,6 +86,7 @@ def main():
     args = parser.parse_args()
 
     try:
+        check_poetry_installed()
         create_project(args.project_name)
         install_dependencies(args.project_name)
         run_uvicorn(args.project_name)
